@@ -1,0 +1,61 @@
+Дано функцію process_payment (код нижче). Напиши набір unit-тестів
+(pytest), що покривають щонайменше такі випадки:
+- успішний платіж (коректні amount, currency, card_number);
+- від'ємна сума (amount <= 0);
+- некоректний номер картки (не 16 цифр, або не рядок);
+- непідтримувана валюта.
+
+Мінімум 4 тест-кейси -- рівно по одному на кожен з перелічених випадків
+(можеш додати більше, якщо вважаєш за потрібне).
+
+КОД ФУНКЦІЇ:
+```python
+import hashlib
+
+SUPPORTED_CURRENCIES = {"USD", "EUR", "UAH"}
+
+
+def process_payment(amount: float, currency: str, card_number: str) -> dict:
+    """
+    Обробляє платіж.
+
+    Args:
+        amount: сума платежу; має бути додатним числом (> 0).
+        currency: код валюти; підтримуються 'USD', 'EUR', 'UAH'.
+        card_number: номер картки -- рядок з рівно 16 цифр
+            (без пробілів, дефісів чи інших символів).
+
+    Returns:
+        dict з ключами "status" ("success"), "amount", "currency",
+        "transaction_id" (детермінований рядок з 12 символів).
+
+    Raises:
+        ValueError: якщо amount <= 0, currency не підтримується,
+            або card_number не є рядком з рівно 16 цифр.
+    """
+    if amount <= 0:
+        raise ValueError("Сума платежу має бути додатною")
+
+    if currency not in SUPPORTED_CURRENCIES:
+        raise ValueError(f"Валюта '{currency}' не підтримується")
+
+    if not isinstance(card_number, str) or not card_number.isdigit() or len(card_number) != 16:
+        raise ValueError("Некоректний номер картки: очікується рядок з 16 цифр")
+
+    raw = f"{amount}-{currency}-{card_number}".encode("utf-8")
+    transaction_id = hashlib.md5(raw).hexdigest()[:12]
+
+    return {
+        "status": "success",
+        "amount": amount,
+        "currency": currency,
+        "transaction_id": transaction_id,
+    }
+```
+
+У відповіді поверни лише код тестів (файл test_process_payment.py) у
+блоці коду -- без додаткових пояснень поза кодом. Тести повинні
+імпортувати process_payment так, ніби вона визначена в модулі
+process_payment (from process_payment import process_payment). Усі
+ідентифікатори (назви тестових функцій, змінних) повинні бути
+англомовними.
